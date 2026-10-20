@@ -19,12 +19,12 @@ class SignatureMatchingTests(unittest.TestCase):
 
     def test_ble_company_id_match(self):
         signatures = {"ble_company_ids": {"0x09C8": {"label": "research indicator"}}}
-        key, details = match_company_ids({0x09C8: b"\\x01\\x02"}, signatures)
+        key, details = match_company_ids({0x09C8: b"\x01\x02"}, signatures)
         self.assertEqual(key, "0x09C8")
         self.assertEqual(details["label"], "research indicator")
 
     def test_nmcli_parser_preserves_bssid_and_colon_in_ssid(self):
-        row = r"AA\\:BB\\:CC\\:DD\\:EE\\:FF:Lobby\\:Guest:78:11:WPA2"
+        row = r"AA\:BB\:CC\:DD\:EE\:FF:Lobby\:Guest:78:11:WPA2"
         self.assertEqual(
             parse_nmcli_line(row),
             ["AA:BB:CC:DD:EE:FF", "Lobby:Guest", "78", "11", "WPA2"],
