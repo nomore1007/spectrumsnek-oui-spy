@@ -267,39 +267,40 @@ def main() -> bool:
         registry.update(finding)
 
     async def scanner_loop() -> None:
-        last_wifi = 0.0
-        while not stop_event.is_set():
-            tasks = []
-            if ble_available:
-                async def run_ble():
-                    try:
-                        await scan_ble(signatures, 4.0, emit)
-                        with status_lock:
-                            status.pop("ble_error", None)
-                    except Exception as exc:
-                        with status_lock:
-                            status["ble_error"] = f"BLE: {exc}"
-                tasks.append(asyncio.create_task(run_ble()))
+        async def ble_loop() -> None:
+            while not stop_event.is_set():
+                try:
+                    await scan_ble(signatures, 4.0, emit)
+                    with status_lock:
+                        status.pop("ble_error", None)
+                except Exception as exc:
+                    with status_lock:
+                        status["ble_error"] = f"BLE: {exc}"
+                    await asyncio.sleep(2.0)
 
-            now = time.monotonic()
-            if wifi_available and now - last_wifi >= WIFI_SCAN_INTERVAL:
-                async def run_wifi():
-                    try:
-                        findings = await asyncio.to_thread(scan_wifi_once, signatures)
-                        for finding in findings:
-                            emit(finding)
-                        with status_lock:
-                            status.pop("wifi_error", None)
-                    except Exception as exc:
-                        with status_lock:
-                            status["wifi_error"] = f"Wi-Fi: {exc}"
-                tasks.append(asyncio.create_task(run_wifi()))
-                last_wifi = now
+        async def wifi_loop() -> None:
+            while not stop_event.is_set():
+                try:
+                    findings = await asyncio.to_thread(scan_wifi_once, signatures)
+                    for finding in findings:
+                        emit(finding)
+                    with status_lock:
+                        status.pop("wifi_error", None)
+                except Exception as exc:
+                    with status_lock:
+                        status["wifi_error"] = f"Wi-Fi: {exc}"
+                # Sleep in short increments so Q/Esc stops the worker promptly.
+                for _ in range(int(WIFI_SCAN_INTERVAL * 2)):
+                    if stop_event.is_set():
+                        break
+                    await asyncio.sleep(0.5)
 
-            if tasks:
-                await asyncio.gather(*tasks)
-            else:
-                await asyncio.sleep(1.0)
+        tasks = []
+        if ble_available:
+            tasks.append(asyncio.create_task(ble_loop()))
+        if wifi_available:
+            tasks.append(asyncio.create_task(wifi_loop()))
+        await asyncio.gather(*tasks)
 
     def worker() -> None:
         try:
