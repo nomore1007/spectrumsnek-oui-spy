@@ -1,0 +1,13 @@
+{
+  "_comment": "Starter examples only. These are research indicators, not proof of device identity. Add verified prefixes and document their source before relying on them.",
+  "ble_company_ids": {
+    "0x09C8": {
+      "label": "XUNTONG company ID",
+      "category": "research indicator",
+      "confidence": "low",
+      "source": "OUI-SPY Unified Blue documentation credits Will Greenberg (@wgreenberg) / flock-you for this detection method. See THIRD_PARTY_NOTICES.md.",
+      "note": "Do not interpret this manufacturer ID alone as proof of a Flock Safety device."
+    }
+  },
+  "mac_prefixes": {}
+}
