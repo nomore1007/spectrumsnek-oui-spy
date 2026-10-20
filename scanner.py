@@ -109,8 +109,8 @@ def timestamp() -> str:
 
 def parse_nmcli_line(line: str):
     """Parse one nmcli terse row while respecting escaped colons."""
-    fields = re.split(r"(?<!\\\\):", line)
-    fields = [field.replace(r"\\:", ":").replace(r"\\\\", "\\\\") for field in fields]
+    fields = re.split(r"(?<!\\):", line)
+    fields = [field.replace("\\:", ":").replace("\\\\", "\\") for field in fields]
     if len(fields) < 5:
         return None
     return fields[:5]
@@ -180,7 +180,7 @@ async def scan_ble(signatures: Dict[str, Any], duration: float, emit) -> None:
 
 
 def _clip(value: Any, width: int) -> str:
-    text = str(value).replace("\\n", " ").replace("\\r", " ")
+    text = str(value).replace("\n", " ").replace("\r", " ")
     return text if len(text) <= width else text[:max(0, width - 1)] + "…"
 
 
