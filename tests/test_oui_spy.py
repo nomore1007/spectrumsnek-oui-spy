@@ -63,6 +63,24 @@ class DeviceRegistryTests(unittest.TestCase):
         registry.update(Finding("12:00:00", "Wi-Fi", "AA:BB", "network", ""), now=100)
         self.assertEqual(len(registry.snapshot(now=100)), 2)
 
+    def test_snapshot_sorts_by_signal_strength_descending(self):
+        registry = DeviceRegistry()
+        registry.update(Finding("12:00:00", "BLE", "AA:01", "weak", "", "-82 dBm"), now=100)
+        registry.update(Finding("12:00:00", "BLE", "AA:02", "strong", "", "-35 dBm"), now=100)
+        registry.update(Finding("12:00:00", "Wi-Fi", "AA:03", "wifi", "", "78%"), now=100)
+        registry.update(Finding("12:00:00", "BLE", "AA:04", "medium", "", "-61 dBm"), now=100)
+
+        labels = [finding.label for finding, _ in registry.snapshot(now=100)]
+        self.assertEqual(labels, ["wifi", "strong", "medium", "weak"])
+
+    def test_snapshot_puts_unknown_signal_at_bottom(self):
+        registry = DeviceRegistry()
+        registry.update(Finding("12:00:00", "BLE", "AA:01", "unknown", ""), now=100)
+        registry.update(Finding("12:00:00", "BLE", "AA:02", "known", "", "-50 dBm"), now=100)
+
+        labels = [finding.label for finding, _ in registry.snapshot(now=100)]
+        self.assertEqual(labels, ["known", "unknown"])
+
 
 if __name__ == "__main__":
     unittest.main()
