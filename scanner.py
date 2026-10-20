@@ -61,11 +61,24 @@ class DeviceRegistry:
             ]
             for key in stale:
                 del self._devices[key]
+            # Sort strongest first using the numeric value shown in SIGNAL.
+            # Unknown/missing signal readings are kept at the bottom.
             return sorted(
                 self._devices.values(),
-                key=lambda item: item[1],
+                key=lambda item: signal_sort_key(item[0].signal),
                 reverse=True,
             )
+
+
+def signal_sort_key(signal: str) -> tuple[int, float]:
+    """Return a sortable signal-strength key; unknown readings sort last."""
+    match = re.search(r"[-+]?\\d+(?:\\.\\d+)?", str(signal))
+    if not match:
+        return (0, float("-inf"))
+    try:
+        return (1, float(match.group(0)))
+    except ValueError:
+        return (0, float("-inf"))
 
 
 def load_signatures() -> Dict[str, Any]:
