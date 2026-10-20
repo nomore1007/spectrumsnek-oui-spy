@@ -72,7 +72,7 @@ class DeviceRegistry:
 
 def signal_sort_key(signal: str) -> tuple[int, float]:
     """Return a sortable signal-strength key; unknown readings sort last."""
-    match = re.search(r"[-+]?\\d+(?:\\.\\d+)?", str(signal))
+    match = re.search(r"[-+]?\d+(?:\.\d+)?", str(signal))
     if not match:
         return (0, float("-inf"))
     try:
